@@ -52,7 +52,7 @@ void MainField::onReleased()
     if (mouse_index == pointToIndex(mapFromGlobal(QCursor::pos()))) {
         int col = mouse_index.x(), row = mouse_index.y();
 
-        if (plate_field[row][col] == opened)
+        if (out_of_range(row, col) || plate_field[row][col] == opened)
             return;
         if (main_field[row][col] == bomb)
             reset(size());
