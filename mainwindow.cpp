@@ -31,14 +31,21 @@ MainWindow::MainWindow(QWidget *parent)
     connect(reset_button, &QPushButton::clicked, this, &MainWindow::onResetButtonClicked);
 }
 
-void MainWindow::onResetButtonClicked()
+void MainWindow::onResetButtonClicked() // *learn QRegularExpression*
 {
-    int input_num = bomb_count_in->text().split(QRegularExpression("\\D+"), Qt::SkipEmptyParts)[0].toInt();
+    auto list = bomb_count_in->text().split(QRegularExpression("\\D+"), Qt::SkipEmptyParts);
 
-    if (input_num < FIELD_MIN_SIZE || input_num > FIELD_MAX_SIZE) {
-        bomb_count_in->setText(QString("%1 ~ %2").arg(FIELD_MIN_SIZE).arg(FIELD_MAX_SIZE));
+    if (list.empty()) {
+        bomb_count_in->setText(FIELD_RANGE_MESSAGE);
         return;
     }
+
+    int input_num = list[0].toInt();
+    if (input_num < FIELD_MIN_SIZE || input_num > FIELD_MAX_SIZE) {
+        bomb_count_in->setText(FIELD_RANGE_MESSAGE);
+        return;
+    }
+
     field->reset(input_num);
 }
 

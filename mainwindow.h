@@ -16,6 +16,8 @@
 
 #define DEFAULT_SIZE 10
 
+#define FIELD_RANGE_MESSAGE "8 ~ 50"
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
