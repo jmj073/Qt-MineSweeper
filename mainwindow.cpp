@@ -32,6 +32,8 @@ MainWindow::MainWindow(QWidget *parent)
     setCentralWidget(placeholder);
 
     connect(reset_button, &QPushButton::clicked, this, &MainWindow::onResetButtonClicked);
+    connect(field, &MainField::statusChanged, progress_bar, &QProgressBar::setValue);
+    connect(field, &MainField::end_of_game, this, &MainWindow::gameEnded);
 }
 
 void MainWindow::onResetButtonClicked() // *learn QRegularExpression*
@@ -49,7 +51,16 @@ void MainWindow::onResetButtonClicked() // *learn QRegularExpression*
         return;
     }
 
+    ui->statusBar->showMessage("reseted", 2000);
     field->reset(input_num);
+}
+
+void MainWindow::gameEnded(MainField::End end)
+{
+    if (end == MainField::End::bomb_exploded)
+        ui->statusBar->showMessage("explosion!!!!!", 2000);
+    else if (end == MainField::End::mission_completed)
+        ui->statusBar->showMessage("mission complete!!", 2000);
 }
 
 MainWindow::~MainWindow()

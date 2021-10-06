@@ -34,6 +34,7 @@ public:
 
 private slots:
     void onResetButtonClicked();
+    void gameEnded(MainField::End);
 
 private:
     Ui::MainWindow *ui;

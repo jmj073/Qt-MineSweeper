@@ -19,13 +19,6 @@ MainField::MainField(int field_size, const QString& flag_image_path, QWidget *pa
     QSizePolicy policy{QSizePolicy::Preferred, QSizePolicy::Preferred};
     setSizePolicy(policy);
 
-//    explosion_shower = new QVideoWidget(this);
-//    explosion_shower->hide();
-
-//    explosion_player = new QMediaPlayer(this);
-//    explosion_player->setSource(QUrl("qrc:/src/explosion.mp4"));
-//    explosion_player->setVideoOutput(explosion_shower);
-
     reset(field_size);
 }
 
@@ -34,7 +27,10 @@ void MainField::reset(int field_size)
     main_field.reset(field_size, field_size, empty);
     plate_field.reset(field_size, field_size, closed);
 
+    num_of_bomb = num_of_opened = 0;
+
     update();
+    emit statusChanged(0);
     plantBomb();
 }
 
@@ -73,11 +69,6 @@ void MainField::plantBomb()
             }
         }
     }
-//    for (int i = 0; i < field_size; i++) {
-//        for (int j = 0; j < field_size; j++)
-//            cout << main_field[i][j] << ' ';
-//        cout << '\n';
-//    }
 }
 
 void MainField::clearPlate(int row, int col)
@@ -108,7 +99,7 @@ void MainField::clearPlate(int row, int col)
         *sp++ = QPoint{cur.x() + 1, cur.y() - 1};
         *sp++ = QPoint{cur.x() - 1, cur.y() + 1};
     }
-    update();
+    emit statusChanged(100 * get_num_of_opened() / ((size() * size()) - get_num_of_bomb()));
 }
 
 void MainField::paintEvent(QPaintEvent*)
@@ -172,22 +163,17 @@ void MainField::mouseReleaseEvent(QMouseEvent* event)
 
     if (event->button() & Qt::LeftButton) {
         if (main_field[row][col] == bomb) {
-        //            show_explosion();
+            emit end_of_game(bomb_exploded);
             reset(size());
             return;
         }
+
         clearPlate(row, col);
+        if (size() * size() == num_of_opened + get_num_of_bomb())
+            emit end_of_game(mission_completed);
     }
     else if(event->button() & Qt::RightButton)
         plate_field[row][col] ^= flagged;
 
     update();
 }
-
-
-//void MainField::show_explosion()
-//{
-//    explosion_shower->show();
-//    explosion_player->play();
-////    explosion_shower->hide();
-//}
