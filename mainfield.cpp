@@ -103,6 +103,10 @@ void MainField::clearPlate(int row, int col)
         *sp++ = QPoint{cur.x(), cur.y() - 1};
         *sp++ = QPoint{cur.x() + 1, cur.y()};
         *sp++ = QPoint{cur.x() - 1, cur.y()};
+        *sp++ = QPoint{cur.x() + 1, cur.y() + 1};
+        *sp++ = QPoint{cur.x() - 1, cur.y() - 1};
+        *sp++ = QPoint{cur.x() + 1, cur.y() - 1};
+        *sp++ = QPoint{cur.x() - 1, cur.y() + 1};
     }
     update();
 }
