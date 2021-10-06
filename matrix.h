@@ -20,12 +20,8 @@ public:
     inline void reset(size_type row, size_type col, T def = T())
     { *this = matrix(row, col, def); }
 
-    inline size_type row() const {
-        return row_size;
-    }
-    inline size_type col() const {
-        return col_size;
-    }
+    inline size_type row() const { return row_size; }
+    inline size_type col() const { return col_size; }
 
 private:
     size_type row_size = 0;

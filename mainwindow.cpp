@@ -15,8 +15,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     bomb_count_in = new QLineEdit(QString::number(DEFAULT_SIZE), placeholder);
     timer = new Timer(placeholder);
-    reset_button = new QPushButton("reset", placeholder);
-    field = new MainField(DEFAULT_SIZE, placeholder);
+    reset_button = new QPushButton("Reset", placeholder);
+    field = new MainField(DEFAULT_SIZE, FLAG_IMAGE_PATH, placeholder);
+    progress_bar = new QProgressBar;
+
+    ui->statusBar->addPermanentWidget(progress_bar);
 
     top_layout->addWidget(bomb_count_in);
     top_layout->addWidget(timer);

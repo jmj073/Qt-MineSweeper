@@ -19,6 +19,7 @@ HEADERS += \
     mainfield.h \
     mainwindow.h \
     matrix.h \
+    resource_paths.h \
     timer.h
 
 FORMS += \

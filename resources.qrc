@@ -1,5 +1,7 @@
 <RCC>
     <qresource prefix="/src">
         <file>explosion.mp4</file>
+        <file>flag.png</file>
+        <file>flag2.png</file>
     </qresource>
 </RCC>

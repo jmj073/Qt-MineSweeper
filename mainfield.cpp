@@ -10,22 +10,21 @@ void sleep(std::clock_t t) {
     for (std::clock_t tt = clock() + t; clock() < tt;);
 }
 
-MainField::MainField(int field_size, QWidget *parent)
-    : QAbstractButton(parent)
+MainField::MainField(int field_size, const QString& flag_image_path, QWidget *parent)
+    : QAbstractButton(parent), flag_image(flag_image_path)
 {
-    connect(this, &MainField::pressed, this, QOverload<>::of(&MainField::onPressed));
-    connect(this, &MainField::released, this, QOverload<>::of(&MainField::onReleased));
+    assert(!flag_image.isNull());
 
     setMinimumSize(350, 350);
     QSizePolicy policy{QSizePolicy::Preferred, QSizePolicy::Preferred};
     setSizePolicy(policy);
 
-    explosion_shower = new QVideoWidget(this);
-    explosion_shower->hide();
+//    explosion_shower = new QVideoWidget(this);
+//    explosion_shower->hide();
 
-    explosion_player = new QMediaPlayer(this);
-    explosion_player->setSource(QUrl("qrc:/src/explosion.mp4"));
-    explosion_player->setVideoOutput(explosion_shower);
+//    explosion_player = new QMediaPlayer(this);
+//    explosion_player->setSource(QUrl("qrc:/src/explosion.mp4"));
+//    explosion_player->setVideoOutput(explosion_shower);
 
     reset(field_size);
 }
@@ -39,38 +38,14 @@ void MainField::reset(int field_size)
     plantBomb();
 }
 
-QPoint MainField::pointToIndex(QPoint point)
+QPoint MainField::pointToIndex(QPointF point)
 {
     double side = qMin(width(), height());
 
-    double col = (point.x() - (width() - side) / 2) * size() / side;
-    double row = (point.y() - (height() - side) / 2) * size() / side;
+    point -= QPointF(width() - side, height() - side) / 2;
+    point *= size() / side;
 
-    return QPoint(row, col);
-}
-
-void MainField::onPressed()
-{
-    mouse_index = pointToIndex(mapFromGlobal(QCursor::pos()));
-    qDebug() << mouse_index << "!!!!!!!!!!";
-}
-
-void MainField::onReleased()
-{
-    if (mouse_index == pointToIndex(mapFromGlobal(QCursor::pos()))) {
-        int col = mouse_index.x(), row = mouse_index.y();
-
-        if (out_of_range(row, col) || plate_field[row][col] == opened)
-            return;
-
-        if (main_field[row][col] == bomb) {
-            show_explosion();
-            reset(size());
-            return;
-        }
-
-        clearPlate(row, col);
-    }
+    return QPoint(point.y(), point.x());
 }
 
 void MainField::plantBomb()
@@ -79,11 +54,12 @@ void MainField::plantBomb()
 
     int field_size = size();
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<int> dis(0, field_size - 1);
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<int> dis(0, field_size - 1);
 
-    int bomb_count = field_size * field_size / 6.5;
+    int bomb_count = field_size * field_size / BOMB_RATIO;
+    num_of_bomb = bomb_count;
 
     while (bomb_count) {
         int row = dis(gen), col = dis(gen);
@@ -102,6 +78,33 @@ void MainField::plantBomb()
 //            cout << main_field[i][j] << ' ';
 //        cout << '\n';
 //    }
+}
+
+void MainField::clearPlate(int row, int col)
+{
+    QPoint stack[2500]; // magic literal
+    QPoint* sp = stack;
+    QPoint cur; // currrent
+
+    *sp++ = QPoint{row, col};
+    while(sp - stack) {
+        cur = *--sp;
+        if (out_of_range(cur.x(), cur.y()) || plate_field[cur.x()][cur.y()] == opened)
+            continue;
+
+        plate_field[cur.x()][cur.y()] = opened;
+        ++num_of_opened;
+//        repaint();
+
+        if (main_field[cur.x()][cur.y()] != empty)
+            continue;
+
+        *sp++ = QPoint{cur.x(), cur.y() + 1};
+        *sp++ = QPoint{cur.x(), cur.y() - 1};
+        *sp++ = QPoint{cur.x() + 1, cur.y()};
+        *sp++ = QPoint{cur.x() - 1, cur.y()};
+    }
+    update();
 }
 
 void MainField::paintEvent(QPaintEvent*)
@@ -132,12 +135,14 @@ void MainField::paintEvent(QPaintEvent*)
             QRectF rect {QPointF{row * box_size, col * box_size},
                 QPointF{(row + 1) * box_size, (col + 1) * box_size}};
 
-            if (plate_field[row][col] == opened) {
+            if (plate_field[row][col] & opened) {
                 painter.setBrush(box_color[2]);
                 painter.drawRect(rect);
                 if (main_field[row][col] != empty)
                     painter.drawText(rect, Qt::AlignCenter, QString::number(main_field[row][col]));
             }
+            else if (plate_field[row][col] & flagged)
+                painter.drawImage(rect, flag_image);
             else {
                 painter.setBrush(box_color[color_switch]);
                 painter.drawRect(rect);
@@ -147,43 +152,38 @@ void MainField::paintEvent(QPaintEvent*)
     }
 }
 
-void MainField::clearPlate(int row, int col)
+void MainField::mousePressEvent(QMouseEvent* event)
 {
-    QPoint stack[2500]; // magic literal
-    QPoint* sp = stack;
-    QPoint cur; // currrent
+    if (event->button() & (Qt::LeftButton | Qt::RightButton))
+        mouse_index = pointToIndex(mapFromGlobal(event->globalPosition()));
+}
 
-    *sp++ = QPoint{row, col};
-    while(sp - stack) {
-        cur = *--sp;
-        if (out_of_range(cur.x(), cur.y()) || plate_field[cur.x()][cur.y()] == opened)
-            continue;
+void MainField::mouseReleaseEvent(QMouseEvent* event)
+{
+    if (mouse_index != pointToIndex(mapFromGlobal(QCursor::pos())))
+        return;
+    int col = mouse_index.x(), row = mouse_index.y();
+    if (out_of_range(row, col) || plate_field[row][col] & opened)
+        return;
 
-        plate_field[cur.x()][cur.y()] = opened;
-//        repaint();
-
-        if (main_field[cur.x()][cur.y()] != empty)
-            continue;
-
-        *sp++ = QPoint{cur.x(), cur.y() + 1};
-        *sp++ = QPoint{cur.x(), cur.y() - 1};
-        *sp++ = QPoint{cur.x() + 1, cur.y()};
-        *sp++ = QPoint{cur.x() - 1, cur.y()};
+    if (event->button() & Qt::LeftButton) {
+        if (main_field[row][col] == bomb) {
+        //            show_explosion();
+            reset(size());
+            return;
+        }
+        clearPlate(row, col);
     }
+    else if(event->button() & Qt::RightButton)
+        plate_field[row][col] ^= flagged;
+
     update();
 }
 
-void MainField::show_explosion()
-{
-    explosion_shower->show();
-    explosion_player->play();
-//    explosion_shower->hide();
-}
 
-
-
-
-
-
-
-
+//void MainField::show_explosion()
+//{
+//    explosion_shower->show();
+//    explosion_player->play();
+////    explosion_shower->hide();
+//}

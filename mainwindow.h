@@ -7,9 +7,11 @@
 #include <QGridLayout>
 #include <QPushButton>
 #include <QLineEdit>
+#include <QProgressBar>
 
 #include "mainfield.h"
 #include "timer.h"
+#include "resource_paths.h"
 
 #define FIELD_MIN_SIZE 8
 #define FIELD_MAX_SIZE 50
@@ -40,6 +42,7 @@ private:
     Timer* timer;
     QPushButton* reset_button;
     MainField* field;
+    QProgressBar* progress_bar;
 
     QHBoxLayout* top_layout;
     QVBoxLayout* mid_layout;
