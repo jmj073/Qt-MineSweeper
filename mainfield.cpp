@@ -20,6 +20,7 @@ MainField::MainField(int field_size, const QString& flag_image_path, QWidget *pa
     setSizePolicy(policy);
 
     reset(field_size);
+    update();
 }
 
 void MainField::reset(int field_size)
@@ -28,6 +29,9 @@ void MainField::reset(int field_size)
     plate_field.reset(field_size, field_size, closed);
 
     num_of_bomb = num_of_opened = 0;
+    scale = 1;
+
+    field_pos = {0, 0};
 
     update();
     emit statusChanged(0);
@@ -38,8 +42,8 @@ QPoint MainField::pointToIndex(QPointF point)
 {
     double side = qMin(width(), height());
 
-    point -= QPointF(width() - side, height() - side) / 2;
-    point *= size() / side;
+    point -= QPointF(width() - side, height() - side) / 2 - field_pos;
+    point *= size() / side / scale;
 
     return QPoint(point.y(), point.x());
 }
@@ -102,6 +106,13 @@ void MainField::clearPlate(int row, int col)
     emit statusChanged(100 * get_num_of_opened() / ((size() * size()) - get_num_of_bomb()));
 }
 
+void MainField::wheelEvent(QWheelEvent* event)
+{
+    scale *=  (event->angleDelta().y() >= 0) ? 2 : 0.5;
+    qDebug() << scale;
+    update();
+}
+
 void MainField::paintEvent(QPaintEvent*)
 {
      // closed1, closed2, number, bomb
@@ -111,8 +122,8 @@ void MainField::paintEvent(QPaintEvent*)
     double box_size = 100.0 / size();
 
     QPainter painter(this);
-    painter.translate((width() - side) / 2, (height() - side) / 2);
-    painter.scale(side / 100.0, side / 100.0);
+    painter.translate(QPoint{width() - side, height() - side} / 2 - field_pos);
+    painter.scale(side / 100.0 * scale, side / 100.0 * scale);
 
     QPen pen;
     pen.setWidth(10.0 / size());
@@ -150,14 +161,18 @@ void MainField::paintEvent(QPaintEvent*)
 void MainField::mousePressEvent(QMouseEvent* event)
 {
     if (event->button() & (Qt::LeftButton | Qt::RightButton))
-        mouse_index = pointToIndex(mapFromGlobal(event->globalPosition()));
+        mouse_pos = event->position();
 }
 
 void MainField::mouseReleaseEvent(QMouseEvent* event)
 {
-    if (mouse_index != pointToIndex(mapFromGlobal(QCursor::pos())))
+    keep = {0, 0};
+    if (mouse_pos != event->position())
         return;
-    int col = mouse_index.x(), row = mouse_index.y();
+
+    QPoint idx = pointToIndex(event->position());
+
+    int col = idx.x(), row = idx.y();
     if (out_of_range(row, col) || plate_field[row][col] & opened)
         return;
 
@@ -175,5 +190,12 @@ void MainField::mouseReleaseEvent(QMouseEvent* event)
     else if(event->button() & Qt::RightButton)
         plate_field[row][col] ^= flagged;
 
+    update();
+}
+
+void MainField::mouseMoveEvent(QMouseEvent* event)
+{
+    field_pos += mouse_pos - event->position() - keep;
+    keep = mouse_pos - event->position();
     update();
 }

@@ -45,22 +45,28 @@ signals:
     void statusChanged(int);
     void end_of_game(MainField::End);
 
+protected:
+    void wheelEvent(QWheelEvent*) override;
+    void paintEvent(QPaintEvent*) override;
+    void mousePressEvent(QMouseEvent*) override;
+    void mouseReleaseEvent(QMouseEvent*) override;
+    void mouseMoveEvent(QMouseEvent*) override;
+
 private:
     void plantBomb();
     void clearPlate(int row, int col);
 
-    void paintEvent(QPaintEvent*) override;
-    void mousePressEvent(QMouseEvent*) override;
-    void mouseReleaseEvent(QMouseEvent*) override;
-
     matrix<signed char> main_field; // empty, bomb, num of around bomb?
     matrix<unsigned char> plate_field; // closed, opened, flagged
-    QPoint mouse_index;
+    QPointF field_pos;
+    QPointF mouse_pos;
+    QPointF keep;
 
     QImage flag_image;
 
     int num_of_bomb = 0;
     int num_of_opened = 0;
+    double scale = 1;
 };
 
 #endif // MAINFIELD_H
