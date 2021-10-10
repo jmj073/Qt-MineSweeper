@@ -42,7 +42,8 @@ QPoint MainField::pointToIndex(QPointF point)
 {
     double side = qMin(width(), height());
 
-    point -= QPointF(width() - side, height() - side) / 2 - field_pos;
+    point -= QPointF(width() - side, height() - side) / 2 + field_pos;
+    qDebug() << point;
     point *= size() / side / scale;
 
     return QPoint(point.y(), point.x());
@@ -109,7 +110,7 @@ void MainField::clearPlate(int row, int col)
 void MainField::wheelEvent(QWheelEvent* event)
 {
     scale *=  (event->angleDelta().y() >= 0) ? 2 : 0.5;
-    qDebug() << scale;
+    field_pos -= pointToFieldPos(event->position()) * ((event->angleDelta().y() >= 0) ? 1 : -0.5);
     update();
 }
 
@@ -122,7 +123,7 @@ void MainField::paintEvent(QPaintEvent*)
     double box_size = 100.0 / size();
 
     QPainter painter(this);
-    painter.translate(QPoint{width() - side, height() - side} / 2 - field_pos);
+    painter.translate(QPoint{width() - side, height() - side} / 2 + field_pos);
     painter.scale(side / 100.0 * scale, side / 100.0 * scale);
 
     QPen pen;
@@ -179,13 +180,15 @@ void MainField::mouseReleaseEvent(QMouseEvent* event)
     if (event->button() & Qt::LeftButton) {
         if (main_field[row][col] == bomb) {
             emit end_of_game(bomb_exploded);
-            reset(size());
+//            reset(size());
             return;
         }
 
         clearPlate(row, col);
-        if (size() * size() == num_of_opened + get_num_of_bomb())
+        if (size() * size() == num_of_opened + get_num_of_bomb()) {
             emit end_of_game(mission_completed);
+            reset(size());
+        }
     }
     else if(event->button() & Qt::RightButton)
         plate_field[row][col] ^= flagged;
@@ -195,7 +198,7 @@ void MainField::mouseReleaseEvent(QMouseEvent* event)
 
 void MainField::mouseMoveEvent(QMouseEvent* event)
 {
-    field_pos += mouse_pos - event->position() - keep;
-    keep = mouse_pos - event->position();
+    field_pos += event->position() - mouse_pos - keep;
+    keep = event->position() - mouse_pos;
     update();
 }

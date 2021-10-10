@@ -13,11 +13,14 @@ MainWindow::MainWindow(QWidget *parent)
     top_layout = new QHBoxLayout;
     mid_layout = new QVBoxLayout;
 
-    bomb_count_in = new QLineEdit(QString::number(DEFAULT_SIZE), placeholder);
+    bomb_count_in = new QSpinBox(placeholder);
     timer = new Timer(placeholder);
     reset_button = new QPushButton("Reset", placeholder);
     field = new MainField(DEFAULT_SIZE, FLAG_IMAGE_PATH, placeholder);
     progress_bar = new QProgressBar;
+
+    bomb_count_in->setRange(FIELD_MIN_SIZE, FIELD_MAX_SIZE);
+    bomb_count_in->setValue(DEFAULT_SIZE);
 
     ui->statusBar->addPermanentWidget(progress_bar);
 
@@ -38,21 +41,8 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::onResetButtonClicked() // *learn QRegularExpression*
 {
-    auto list = bomb_count_in->text().split(QRegularExpression("\\D+"), Qt::SkipEmptyParts);
-
-    if (list.empty()) {
-        bomb_count_in->setText(FIELD_RANGE_MESSAGE);
-        return;
-    }
-
-    int input_num = list[0].toInt();
-    if (input_num < FIELD_MIN_SIZE || input_num > FIELD_MAX_SIZE) {
-        bomb_count_in->setText(FIELD_RANGE_MESSAGE);
-        return;
-    }
-
+    field->reset(bomb_count_in->value());
     ui->statusBar->showMessage("reseted", 2000);
-    field->reset(input_num);
 }
 
 void MainWindow::gameEnded(MainField::End end)
@@ -61,6 +51,7 @@ void MainWindow::gameEnded(MainField::End end)
         ui->statusBar->showMessage("explosion!!!!!", 2000);
     else if (end == MainField::End::mission_completed)
         ui->statusBar->showMessage("mission complete!!", 2000);
+    field->reset(bomb_count_in->value());
 }
 
 MainWindow::~MainWindow()

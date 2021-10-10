@@ -8,6 +8,7 @@
 #include <QPushButton>
 #include <QLineEdit>
 #include <QProgressBar>
+#include <QSpinBox>
 
 #include "mainfield.h"
 #include "timer.h"
@@ -39,7 +40,7 @@ private slots:
 private:
     Ui::MainWindow *ui;
 
-    QLineEdit* bomb_count_in;
+    QSpinBox* bomb_count_in;
     Timer* timer;
     QPushButton* reset_button;
     MainField* field;

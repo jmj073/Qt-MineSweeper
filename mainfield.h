@@ -30,6 +30,7 @@ public:
     explicit MainField(int field_size, const QString& flag_image_path, QWidget *parent = nullptr);
     void reset(int field_size);
 
+    QPointF pointToFieldPos(QPointF point);
     QPoint pointToIndex(QPointF point);
 
 
@@ -68,5 +69,11 @@ private:
     int num_of_opened = 0;
     double scale = 1;
 };
+
+inline QPointF MainField::pointToFieldPos(QPointF point)
+{
+    int side = qMin(width(), height());
+    return point - (QPointF(width() - side, height() - side) / 2 + field_pos);
+}
 
 #endif // MAINFIELD_H
