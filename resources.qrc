@@ -1,7 +1,7 @@
 <RCC>
     <qresource prefix="/src">
-        <file>flag.png</file>
-        <file>flag2.png</file>
-        <file>explosion.png</file>
+        <file>resource/flag.png</file>
+        <file>resource/flag2.png</file>
+        <file>resource/explosion.png</file>
     </qresource>
 </RCC>
