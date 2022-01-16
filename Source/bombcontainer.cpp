@@ -75,13 +75,13 @@ void BombContainer::plantBomb()
 {
     static constexpr int search[8][2] {{-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}};
 
-    random_device rd;
+    static random_device rd;
+
     mt19937 gen(rd());
     uniform_int_distribution<size_t> r_dis(0, row() - 1);
     uniform_int_distribution<size_t> c_dis(0, col() - 1);
 
     size_t bomb_count = m_num_of_bomb;
-
     while (bomb_count > 0) {
         int row = r_dis(gen), col = c_dis(gen);
         if (m_bomb_grid[row][col] != bomb) {
@@ -94,6 +94,7 @@ void BombContainer::plantBomb()
             }
         }
     }
+    qDebug() << "-------------------------";
 }
 
 
