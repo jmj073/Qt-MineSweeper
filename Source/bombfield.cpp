@@ -62,7 +62,6 @@ void BombField::paintEvent(QPaintEvent*)
 {
      // closed1, closed2, number, bomb
     static constexpr QColor box_color[3] {{130, 224, 17}, {218, 247, 166}, {255, 255, 255}};
-    int color_switch = 0;
     int side = qMin(width(), height());
     double box_size = 100.0 / field_size();
 
@@ -79,10 +78,8 @@ void BombField::paintEvent(QPaintEvent*)
     font.setPixelSize(100.0 / field_size());
     painter.setFont(font);
 
-    bool even = !(field_size() & 1);
     for (size_t row = 0; row < field_size(); row++) {
         for (size_t col = 0; col < field_size(); col++) {
-            color_switch = !color_switch;
 
             QRectF rect {QPointF{row * box_size, col * box_size},
                 QPointF{(row + 1) * box_size, (col + 1) * box_size}};
@@ -96,11 +93,10 @@ void BombField::paintEvent(QPaintEvent*)
             else if (bomb_container.plate_grid(row, col) & BombContainer::flagged)
                 painter.drawImage(rect, flag_image);
             else {
-                painter.setBrush(box_color[color_switch]);
+                painter.setBrush(box_color[(row + col) & 1]);
                 painter.drawRect(rect);
             }
         }
-        if (even) color_switch = !color_switch;
     }
 }
 
